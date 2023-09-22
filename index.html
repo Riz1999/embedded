@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screen Capture</title>
+</head>
+<body>
+    <button id="captureButton">Start Screen Capture</button>
+
+    <script>
+        const captureButton = document.getElementById('captureButton');
+        let mediaStream = null;
+
+        captureButton.addEventListener('click', async () => {
+            try {
+                const displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                mediaStream = new MediaStream();
+
+                displayStream.getTracks().forEach(track => {
+                    mediaStream.addTrack(track);
+                });
+
+                const videoElement = document.createElement('video');
+                videoElement.srcObject = mediaStream;
+                document.body.appendChild(videoElement);
+                captureButton.disabled = true;
+
+                // Listen for the 'q' key press
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'q') {
+                        captureScreen(videoElement);
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error accessing screen:', error);
+            }
+        });
+
+        function captureScreen(videoElement) {
+            const canvas = document.createElement('canvas');
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+            // Create a download link for the captured screen image
+            const a = document.createElement('a');
+            a.href = canvas.toDataURL('image/png');
+            a.download = 'screenshot.png';
+            a.click();
+        }
+    </script>
+</body>
+</html>
+
